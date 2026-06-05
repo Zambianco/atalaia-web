@@ -28,6 +28,7 @@ class Device(models.Model):
 class Telemetry(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="telemetries")
     topic = models.CharField(max_length=255)
+    reading_key = models.CharField(max_length=255, unique=True, null=True, blank=True)
     payload = models.JSONField(default=dict, blank=True)
     temperature = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     recorded_at = models.DateTimeField(default=timezone.now, db_index=True)

@@ -37,6 +37,19 @@ def parse_payload(raw_payload: bytes) -> dict:
     return data
 
 
+def build_reading_key(payload: dict) -> str | None:
+    reading_id = payload.get("readingId")
+    if reading_id:
+        return str(reading_id)
+
+    probe_id = payload.get("probeId")
+    timestamp = payload.get("timestamp")
+    if probe_id and timestamp:
+        return f"{probe_id}|{timestamp}"
+
+    return None
+
+
 def upsert_device(conn, payload: dict) -> int:
     hardware_id = payload.get("id")
     if not hardware_id:
@@ -67,14 +80,16 @@ def upsert_device(conn, payload: dict) -> int:
 def insert_telemetry(conn, device_id: int, topic: str, payload: dict) -> None:
     recorded_at = datetime.now(timezone.utc)
     temperature = payload.get("temperature")
+    reading_key = build_reading_key(payload)
 
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO dashboard_telemetry (device_id, topic, payload, temperature, recorded_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO dashboard_telemetry (device_id, topic, reading_key, payload, temperature, recorded_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (reading_key) DO NOTHING
             """,
-            (device_id, topic, json.dumps(payload), temperature, recorded_at),
+            (device_id, topic, reading_key, json.dumps(payload), temperature, recorded_at),
         )
 
 
