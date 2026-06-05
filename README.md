@@ -2,7 +2,7 @@
 
 Estrutura base para migrar a interface do ESP32 para uma aplicacao web com `Django + Bootstrap`.
 
-Os caminhos e comandos deste documento assumem `web/` como raiz de trabalho.
+Os caminhos e comandos deste documento assumem a raiz do repositorio como diretorio de trabalho.
 
 ## Servicos
 
@@ -26,10 +26,10 @@ mosquitto/
 
 1. Copie `.env.example` para `.env`.
 2. Ajuste as credenciais e hosts.
+   Se for usar a stack Docker deste repositorio, defina `POSTGRES_HOST=postgres`.
 3. Suba os containers:
 
 ```bash
-cd web
 docker compose up --build
 ```
 

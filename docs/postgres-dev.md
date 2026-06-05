@@ -113,17 +113,21 @@ Se a conexao funcionar, a base esta pronta para a aplicacao.
 
 No `.env` local:
 
+Se a aplicacao estiver rodando via `docker compose` deste repositorio, use o nome do servico `postgres` como host:
+
 ```env
 POSTGRES_DB=atalaia_dev
 POSTGRES_USER=atalaia_user_dev
 POSTGRES_PASSWORD=SENHA_DA_APLICACAO_DEV
-POSTGRES_HOST=localhost
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 
 DJANGO_DEBUG=1
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
 DJANGO_SECRET_KEY=sua-chave-secreta-local
 ```
+
+Se voce for rodar o Django fora do Docker, ai sim `POSTGRES_HOST=localhost` pode fazer sentido.
 
 ## 8. Rodar as migracoes
 

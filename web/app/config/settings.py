@@ -6,6 +6,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = BASE_DIR.parent.parent
 
 
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
+def require_bool_env(name: str) -> bool:
+    value = require_env(name)
+    if value not in {"0", "1"}:
+        raise RuntimeError(f"Invalid value for {name}: expected '0' or '1'")
+    return value == "1"
+
+
+def require_csv_env(name: str) -> list[str]:
+    value = require_env(name)
+    items = [item.strip() for item in value.split(",") if item.strip()]
+    if not items:
+        raise RuntimeError(f"Invalid value for {name}: expected a comma-separated list")
+    return items
+
+
 def load_env_file(path: Path) -> None:
     if not path.exists():
         return
@@ -21,9 +43,9 @@ def load_env_file(path: Path) -> None:
 
 load_env_file(REPO_ROOT / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if host.strip()]
+SECRET_KEY = require_env("DJANGO_SECRET_KEY")
+DEBUG = require_bool_env("DJANGO_DEBUG")
+ALLOWED_HOSTS = require_csv_env("DJANGO_ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -67,11 +89,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "datalogger"),
-        "USER": os.getenv("POSTGRES_USER", "datalogger"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "datalogger"),
-        "HOST": os.getenv("POSTGRES_HOST", "postgres"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "NAME": require_env("POSTGRES_DB"),
+        "USER": require_env("POSTGRES_USER"),
+        "PASSWORD": require_env("POSTGRES_PASSWORD"),
+        "HOST": require_env("POSTGRES_HOST"),
+        "PORT": require_env("POSTGRES_PORT"),
     }
 }
 

@@ -101,11 +101,13 @@ Se a conexao funcionar, a base esta pronta para a aplicacao.
 
 No `.env` de producao:
 
+Se a aplicacao estiver rodando via `docker compose` deste repositorio, use o nome do servico `postgres` como host:
+
 ```env
 POSTGRES_DB=atalaia_prod
 POSTGRES_USER=atalaia_user_prod
 POSTGRES_PASSWORD=SENHA_FORTE_DA_APLICACAO
-POSTGRES_HOST=localhost
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 
 DJANGO_DEBUG=0
@@ -113,13 +115,15 @@ DJANGO_ALLOWED_HOSTS=seu-dominio.com,www.seu-dominio.com
 DJANGO_SECRET_KEY=sua-chave-secreta-forte
 ```
 
+Se o Django estiver fora do Docker e o banco no mesmo servidor, `POSTGRES_HOST=localhost` continua valido.
+
 ## 8. Rodar as migracoes
 
 Na aplicacao:
 
 ```bash
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py createsuperuser_if_missing
 ```
 
 ## Boas praticas
@@ -127,8 +131,8 @@ python manage.py createsuperuser
 - Nao use `lyra` no `.env` da aplicacao.
 - Nao de `SUPERUSER` para `atalaia_user_prod`.
 - Use senhas diferentes para `lyra` e `atalaia_user_prod`.
-- Restrinja acesso ao PostgreSQL no firewall.
-- Se o banco estiver no mesmo servidor da aplicacao, prefira `POSTGRES_HOST=localhost`.
+- Restrinja acesso ao PostgreSQL no firewall quando ele estiver fora de uma rede interna Docker.
+- Em Compose, prefira `POSTGRES_HOST=postgres`.
 
 ## Script SQL completo
 

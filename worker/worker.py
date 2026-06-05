@@ -6,16 +6,23 @@ import paho.mqtt.client as mqtt
 import psycopg
 
 
-MQTT_HOST = os.getenv("MQTT_HOST", "mosquitto")
-MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
-MQTT_TOPIC = os.getenv("MQTT_TOPIC", "devices/+/telemetry")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
+MQTT_HOST = require_env("MQTT_HOST")
+MQTT_PORT = int(require_env("MQTT_PORT"))
+MQTT_TOPIC = require_env("MQTT_TOPIC")
 
 DB_CONFIG = {
-    "dbname": os.getenv("POSTGRES_DB", "datalogger"),
-    "user": os.getenv("POSTGRES_USER", "datalogger"),
-    "password": os.getenv("POSTGRES_PASSWORD", "datalogger"),
-    "host": os.getenv("POSTGRES_HOST", "postgres"),
-    "port": os.getenv("POSTGRES_PORT", "5432"),
+    "dbname": require_env("POSTGRES_DB"),
+    "user": require_env("POSTGRES_USER"),
+    "password": require_env("POSTGRES_PASSWORD"),
+    "host": require_env("POSTGRES_HOST"),
+    "port": require_env("POSTGRES_PORT"),
 }
 
 
