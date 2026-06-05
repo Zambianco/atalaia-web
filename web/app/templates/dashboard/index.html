@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-secondary">Dispositivos</div>
+                <div class="display-6 fw-semibold">{{ device_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-secondary">Online</div>
+                <div class="display-6 fw-semibold text-success">{{ online_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="text-secondary">Offline</div>
+                <div class="display-6 fw-semibold text-danger">{{ offline_count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ultimas telemetrias</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>Topico</th>
+                                <th>Temperatura</th>
+                                <th>Horario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for telemetry in latest_telemetries %}
+                            <tr>
+                                <td><a href="/devices/{{ telemetry.device_id }}/">{{ telemetry.device.name }}</a></td>
+                                <td><code>{{ telemetry.topic }}</code></td>
+                                <td>{{ telemetry.temperature|default:"-" }}</td>
+                                <td>{{ telemetry.recorded_at|date:"d/m/Y H:i:s" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-secondary">Nenhuma telemetria ainda.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Topicos mais frequentes</h2>
+                <ul class="list-group list-group-flush">
+                    {% for item in device_topics %}
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <code>{{ item.topic }}</code>
+                        <span class="badge text-bg-secondary">{{ item.total }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item px-0 text-secondary">Sem dados.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Eventos recentes</h2>
+                <ul class="list-group list-group-flush">
+                    {% for event in recent_events %}
+                    <li class="list-group-item px-0">
+                        <div class="fw-semibold">{{ event.device.name }} <span class="badge text-bg-light">{{ event.level }}</span></div>
+                        <div>{{ event.message }}</div>
+                        <small class="text-secondary">{{ event.created_at|date:"d/m/Y H:i:s" }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item px-0 text-secondary">Sem eventos.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dispositivos</h1>
+        <div class="text-secondary">Inventario e ultimo contato</div>
+    </div>
+    <a class="btn btn-outline-primary" href="/admin/dashboard/device/add/">Novo dispositivo</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Ultimo contato</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td><a href="/devices/{{ device.id }}/">{{ device.name }}</a></td>
+                    <td><code>{{ device.hardware_id }}</code></td>
+                    <td>
+                        {% if device.is_online %}
+                        <span class="badge text-bg-success">Online</span>
+                        {% else %}
+                        <span class="badge text-bg-secondary">Offline</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ device.last_seen_at|date:"d/m/Y H:i:s"|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="p-4 text-secondary">Nenhum dispositivo cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

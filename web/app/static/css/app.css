@@ -1,0 +1,11 @@
+body {
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 1rem;
+}
+
+code {
+    color: #055160;
+}

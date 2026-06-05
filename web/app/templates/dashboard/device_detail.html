@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ device.name }}</h1>
+        <div class="text-secondary"><code>{{ device.hardware_id }}</code></div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/devices/">Voltar</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5">Resumo</h2>
+                <dl class="mb-0">
+                    <dt>Status</dt>
+                    <dd>{% if device.is_online %}Online{% else %}Offline{% endif %}</dd>
+                    <dt>Firmware</dt>
+                    <dd>{{ device.firmware_version|default:"-" }}</dd>
+                    <dt>Ultimo contato</dt>
+                    <dd>{{ device.last_seen_at|date:"d/m/Y H:i:s"|default:"-" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ultimas telemetrias</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Topico</th>
+                                <th>Temperatura</th>
+                                <th>Horario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for telemetry in telemetries %}
+                            <tr>
+                                <td><code>{{ telemetry.topic }}</code></td>
+                                <td>{{ telemetry.temperature|default:"-" }}</td>
+                                <td>{{ telemetry.recorded_at|date:"d/m/Y H:i:s" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-secondary">Nenhuma telemetria ainda.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Eventos</h2>
+                <ul class="list-group list-group-flush">
+                    {% for event in events %}
+                    <li class="list-group-item px-0">
+                        <div class="fw-semibold">{{ event.message }}</div>
+                        <small class="text-secondary">{{ event.created_at|date:"d/m/Y H:i:s" }} | {{ event.level }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item px-0 text-secondary">Nenhum evento registrado.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+import json
+import os
+from datetime import datetime, timezone
+
+import paho.mqtt.client as mqtt
+import psycopg
+
+
+MQTT_HOST = os.getenv("MQTT_HOST", "mosquitto")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "devices/+/telemetry")
+
+DB_CONFIG = {
+    "dbname": os.getenv("POSTGRES_DB", "datalogger"),
+    "user": os.getenv("POSTGRES_USER", "datalogger"),
+    "password": os.getenv("POSTGRES_PASSWORD", "datalogger"),
+    "host": os.getenv("POSTGRES_HOST", "postgres"),
+    "port": os.getenv("POSTGRES_PORT", "5432"),
+}
+
+
+def db_connect():
+    return psycopg.connect(**DB_CONFIG)
+
+
+def parse_payload(raw_payload: bytes) -> dict:
+    data = json.loads(raw_payload.decode("utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("MQTT payload must be a JSON object")
+    return data
+
+
+def upsert_device(conn, payload: dict) -> int:
+    hardware_id = payload.get("id")
+    if not hardware_id:
+        raise ValueError("Payload missing 'id'")
+
+    name = payload.get("name") or hardware_id
+    firmware_version = payload.get("fw", "")
+    now = datetime.now(timezone.utc)
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO dashboard_device (name, hardware_id, firmware_version, is_active, last_seen_at, last_payload, created_at, updated_at)
+            VALUES (%s, %s, %s, TRUE, %s, %s, %s, %s)
+            ON CONFLICT (hardware_id) DO UPDATE
+            SET name = EXCLUDED.name,
+                firmware_version = EXCLUDED.firmware_version,
+                last_seen_at = EXCLUDED.last_seen_at,
+                last_payload = EXCLUDED.last_payload,
+                updated_at = EXCLUDED.updated_at
+            RETURNING id
+            """,
+            (name, hardware_id, firmware_version, now, json.dumps(payload), now, now, now),
+        )
+        return cur.fetchone()[0]
+
+
+def insert_telemetry(conn, device_id: int, topic: str, payload: dict) -> None:
+    recorded_at = datetime.now(timezone.utc)
+    temperature = payload.get("temperature")
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO dashboard_telemetry (device_id, topic, payload, temperature, recorded_at)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (device_id, topic, json.dumps(payload), temperature, recorded_at),
+        )
+
+
+def on_connect(client, userdata, flags, reason_code, properties):
+    print(f"Connected to MQTT broker with result code={reason_code}")
+    client.subscribe(MQTT_TOPIC)
+
+
+def on_message(client, userdata, msg):
+    try:
+        payload = parse_payload(msg.payload)
+        with db_connect() as conn:
+            device_id = upsert_device(conn, payload)
+            insert_telemetry(conn, device_id, msg.topic, payload)
+            conn.commit()
+        print(f"Stored telemetry from {payload.get('id')} on topic {msg.topic}")
+    except Exception as exc:
+        print(f"Failed to process message on {msg.topic}: {exc}")
+
+
+def main():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect(MQTT_HOST, MQTT_PORT, 60)
+    client.loop_forever()
+
+
+if __name__ == "__main__":
+    main()
