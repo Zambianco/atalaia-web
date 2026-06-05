@@ -59,7 +59,7 @@ def upsert_device(conn, payload: dict) -> int:
                 updated_at = EXCLUDED.updated_at
             RETURNING id
             """,
-            (name, hardware_id, firmware_version, now, json.dumps(payload), now, now, now),
+            (name, hardware_id, firmware_version, now, json.dumps(payload), now, now),
         )
         return cur.fetchone()[0]
 

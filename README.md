@@ -27,6 +27,7 @@ mosquitto/
 1. Copie `.env.example` para `.env`.
 2. Ajuste as credenciais e hosts.
    Se for usar a stack Docker deste repositorio, defina `POSTGRES_HOST=postgres`.
+   Tambem defina `MQTT_HOST=mosquitto`.
 3. Suba os containers:
 
 ```bash
