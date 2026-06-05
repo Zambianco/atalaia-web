@@ -24,8 +24,42 @@
                 </dl>
             </div>
         </div>
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Ultima leitura</h2>
+                {% if latest_telemetry %}
+                <div class="reading-value">{{ latest_telemetry.temperature|default:"-" }}</div>
+                <div class="text-secondary mb-3">Temperatura registrada</div>
+                <dl class="mb-0">
+                    <dt>Topico</dt>
+                    <dd><code>{{ latest_telemetry.topic }}</code></dd>
+                    <dt>Horario</dt>
+                    <dd>{{ latest_telemetry.recorded_at|date:"d/m/Y H:i:s" }}</dd>
+                </dl>
+                {% else %}
+                <div class="text-secondary">Nenhuma leitura recebida ainda.</div>
+                {% endif %}
+            </div>
+        </div>
     </div>
     <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Grafico das ultimas leituras</h2>
+                    <span class="text-secondary small">Ate 20 pontos</span>
+                </div>
+                {% if chart_values %}
+                {{ chart_labels|json_script:"chart-labels" }}
+                {{ chart_values|json_script:"chart-values" }}
+                <div class="chart-wrap">
+                    <canvas id="telemetryChart" aria-label="Grafico das ultimas leituras"></canvas>
+                </div>
+                {% else %}
+                <div class="text-secondary">Sem leituras com temperatura para exibir no grafico.</div>
+                {% endif %}
+            </div>
+        </div>
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h2 class="h5 mb-3">Ultimas telemetrias</h2>
@@ -70,4 +104,44 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if chart_values %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    const chartLabels = JSON.parse(document.getElementById("chart-labels").textContent);
+    const chartValues = JSON.parse(document.getElementById("chart-values").textContent);
+    const chartCanvas = document.getElementById("telemetryChart");
+
+    if (chartCanvas && chartLabels.length && chartValues.length) {
+        new Chart(chartCanvas, {
+            type: "line",
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: "Temperatura",
+                    data: chartValues,
+                    borderColor: "#0d6efd",
+                    backgroundColor: "rgba(13, 110, 253, 0.12)",
+                    fill: true,
+                    tension: 0.25,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (value) => `${value} C`
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}

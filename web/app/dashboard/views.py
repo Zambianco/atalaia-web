@@ -32,10 +32,22 @@ def device_list_view(request):
 @login_required
 def device_detail_view(request, pk):
     device = get_object_or_404(Device, pk=pk)
-    telemetries = device.telemetries.all()[:25]
+    telemetries = list(device.telemetries.all()[:25])
+    latest_telemetry = telemetries[0] if telemetries else None
+    chart_telemetries = list(
+        device.telemetries.exclude(temperature__isnull=True).order_by("-recorded_at")[:20]
+    )
+    chart_telemetries.reverse()
     events = device.events.all()[:25]
     return render(
         request,
         "dashboard/device_detail.html",
-        {"device": device, "telemetries": telemetries, "events": events},
+        {
+            "device": device,
+            "telemetries": telemetries,
+            "latest_telemetry": latest_telemetry,
+            "chart_labels": [item.recorded_at.strftime("%d/%m %H:%M:%S") for item in chart_telemetries],
+            "chart_values": [float(item.temperature) for item in chart_telemetries],
+            "events": events,
+        },
     )
