@@ -59,11 +59,31 @@ Payload esperado:
 {
   "type": "telemetry",
   "id": "AA:BB:CC:DD:EE:FF",
-  "name": "Caixa d'agua",
-  "fw": "sonda-0.2.0",
-  "temperature": 25.31
+  "name": "Gateway Caixa Dagua",
+  "probeId": "11:22:33:44:55:66",
+  "probeName": "Sonda Caixa",
+  "readingId": "11:22:33:44:55:66@2026-06-06T23:10:15",
+  "fw": "gateway-0.1.0",
+  "seq": 42,
+  "receivedPackets": 42,
+  "lostPackets": 3,
+  "timeSinceLastReceptionMs": 5987,
+  "rssi": -87,
+  "snr": 7.5,
+  "timestamp": "2026-06-06T23:10:15",
+  "timestampEpoch": 1780783815,
+  "temperature": 24.37
 }
 ```
+
+Regras aceitas pelo worker:
+
+- `readingId` e usado como chave de idempotencia.
+- `timeSinceLastReceptionMs` pode vir `null` na primeira leitura conhecida.
+- `rssi` e `snr` sao obrigatorios e ficam disponiveis no `payload` salvo para uso futuro no dashboard.
+- `temperature` pode vir `null` se a leitura do sensor falhar.
+- `timestamp` e `timestampEpoch` podem vir `null` se o gateway ainda estiver sem horario sincronizado.
+- `receivedPackets` e `lostPackets` sao tratados como contadores acumulados por `probeId`.
 
 ## Proximos passos
 

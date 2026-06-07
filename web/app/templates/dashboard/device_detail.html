@@ -35,6 +35,14 @@
                     <dd><code>{{ latest_telemetry.topic }}</code></dd>
                     <dt>Horario</dt>
                     <dd>{{ latest_telemetry.recorded_at|date:"d/m/Y H:i:s" }}</dd>
+                    <dt>RSSI</dt>
+                    <dd>{% if latest_telemetry.payload.rssi != None %}{{ latest_telemetry.payload.rssi }} dBm{% else %}-{% endif %}</dd>
+                    <dt>SNR</dt>
+                    <dd>{% if latest_telemetry.payload.snr != None %}{{ latest_telemetry.payload.snr }} dB{% else %}-{% endif %}</dd>
+                    <dt>Pacotes recebidos</dt>
+                    <dd>{{ latest_telemetry.payload.receivedPackets|default:"-" }}</dd>
+                    <dt>Pacotes perdidos</dt>
+                    <dd>{{ latest_telemetry.payload.lostPackets|default:"-" }}</dd>
                 </dl>
                 {% else %}
                 <div class="text-secondary">Nenhuma leitura recebida ainda.</div>
@@ -69,6 +77,10 @@
                             <tr>
                                 <th>Topico</th>
                                 <th>Temperatura</th>
+                                <th>RSSI</th>
+                                <th>SNR</th>
+                                <th>Recebidos</th>
+                                <th>Perdidos</th>
                                 <th>Horario</th>
                             </tr>
                         </thead>
@@ -77,10 +89,14 @@
                             <tr>
                                 <td><code>{{ telemetry.topic }}</code></td>
                                 <td>{{ telemetry.temperature|floatformat:"-2"|default:"-" }}</td>
+                                <td>{{ telemetry.payload.rssi|default:"-" }}</td>
+                                <td>{{ telemetry.payload.snr|default:"-" }}</td>
+                                <td>{{ telemetry.payload.receivedPackets|default:"-" }}</td>
+                                <td>{{ telemetry.payload.lostPackets|default:"-" }}</td>
                                 <td>{{ telemetry.recorded_at|date:"d/m/Y H:i:s" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="3" class="text-secondary">Nenhuma telemetria ainda.</td></tr>
+                            <tr><td colspan="7" class="text-secondary">Nenhuma telemetria ainda.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
