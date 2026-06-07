@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 
 from .models import Device, Event, Telemetry
 
@@ -46,7 +47,10 @@ def device_detail_view(request, pk):
             "device": device,
             "telemetries": telemetries,
             "latest_telemetry": latest_telemetry,
-            "chart_labels": [item.recorded_at.strftime("%d/%m %H:%M:%S") for item in chart_telemetries],
+            "chart_labels": [
+                timezone.localtime(item.recorded_at).strftime("%d/%m %H:%M:%S")
+                for item in chart_telemetries
+            ],
             "chart_values": [float(item.temperature) for item in chart_telemetries],
             "events": events,
         },

@@ -28,7 +28,7 @@
             <div class="card-body">
                 <h2 class="h5 mb-3">Ultima leitura</h2>
                 {% if latest_telemetry %}
-                <div class="reading-value">{{ latest_telemetry.temperature|default:"-" }}</div>
+                <div class="reading-value">{{ latest_telemetry.temperature|floatformat:"-2"|default:"-" }}</div>
                 <div class="text-secondary mb-3">Temperatura registrada</div>
                 <dl class="mb-0">
                     <dt>Topico</dt>
@@ -76,7 +76,7 @@
                             {% for telemetry in telemetries %}
                             <tr>
                                 <td><code>{{ telemetry.topic }}</code></td>
-                                <td>{{ telemetry.temperature|default:"-" }}</td>
+                                <td>{{ telemetry.temperature|floatformat:"-2"|default:"-" }}</td>
                                 <td>{{ telemetry.recorded_at|date:"d/m/Y H:i:s" }}</td>
                             </tr>
                             {% empty %}
@@ -113,6 +113,10 @@
     const chartLabels = JSON.parse(document.getElementById("chart-labels").textContent);
     const chartValues = JSON.parse(document.getElementById("chart-values").textContent);
     const chartCanvas = document.getElementById("telemetryChart");
+    const temperatureFormatter = new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
 
     if (chartCanvas && chartLabels.length && chartValues.length) {
         new Chart(chartCanvas, {
@@ -135,7 +139,14 @@
                 scales: {
                     y: {
                         ticks: {
-                            callback: (value) => `${value} C`
+                            callback: (value) => `${temperatureFormatter.format(value)} C`
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Temperatura: ${temperatureFormatter.format(context.parsed.y)} C`
                         }
                     }
                 }
