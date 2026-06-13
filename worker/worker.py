@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import paho.mqtt.client as mqtt
 import psycopg
@@ -97,6 +98,14 @@ def normalize_optional_timestamp(payload: dict) -> str | None:
     return value
 
 
+def get_local_timezone():
+    timezone_name = os.getenv("TZ", "UTC")
+    try:
+        return ZoneInfo(timezone_name)
+    except ZoneInfoNotFoundError:
+        return timezone.utc
+
+
 def parse_recorded_at(payload: dict) -> datetime:
     timestamp = normalize_optional_timestamp(payload)
     if not timestamp:
@@ -105,7 +114,7 @@ def parse_recorded_at(payload: dict) -> datetime:
     normalized_timestamp = timestamp.replace("Z", "+00:00")
     parsed = datetime.fromisoformat(normalized_timestamp)
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=get_local_timezone())
     return parsed.astimezone(timezone.utc)
 
 

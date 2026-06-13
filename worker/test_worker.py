@@ -1,6 +1,7 @@
 import unittest
 import sys
 import types
+import os
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from datetime import timezone
@@ -57,6 +58,22 @@ class WorkerTelemetryTests(unittest.TestCase):
 
         self.assertEqual(recorded_at.tzinfo, timezone.utc)
         self.assertEqual(recorded_at.isoformat(), "2026-06-06T23:10:15+00:00")
+
+    def test_parse_recorded_at_uses_local_tz_for_naive_timestamp(self):
+        payload = {"timestamp": "2026-06-07T00:02:28"}
+        previous_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "America/Sao_Paulo"
+
+        try:
+            recorded_at = WORKER.parse_recorded_at(payload)
+        finally:
+            if previous_tz is None:
+                os.environ.pop("TZ", None)
+            else:
+                os.environ["TZ"] = previous_tz
+
+        self.assertEqual(recorded_at.tzinfo, timezone.utc)
+        self.assertEqual(recorded_at.isoformat(), "2026-06-07T03:02:28+00:00")
 
     def test_normalize_rejects_negative_counter(self):
         payload = {
