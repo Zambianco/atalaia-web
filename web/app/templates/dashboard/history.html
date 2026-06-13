@@ -57,6 +57,24 @@
     </div>
 </div>
 
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Oscilação de temperatura</h2>
+            <span class="text-secondary small">Até 200 pontos do período filtrado</span>
+        </div>
+        {% if chart_values %}
+        {{ chart_labels|json_script:"history-chart-labels" }}
+        {{ chart_values|json_script:"history-chart-values" }}
+        <div class="chart-wrap">
+            <canvas id="historyTemperatureChart" aria-label="Gráfico de oscilação de temperatura"></canvas>
+        </div>
+        {% else %}
+        <div class="text-secondary">Sem telemetrias com temperatura para desenhar o gráfico nesse período.</div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm border-0 h-100">
@@ -174,4 +192,59 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if chart_values %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    const historyChartLabels = JSON.parse(document.getElementById("history-chart-labels").textContent);
+    const historyChartValues = JSON.parse(document.getElementById("history-chart-values").textContent);
+    const historyCanvas = document.getElementById("historyTemperatureChart");
+    const temperatureFormatter = new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+
+    if (historyCanvas && historyChartLabels.length && historyChartValues.length) {
+        new Chart(historyCanvas, {
+            type: "line",
+            data: {
+                labels: historyChartLabels,
+                datasets: [{
+                    label: "Temperatura",
+                    data: historyChartValues,
+                    borderColor: "#0d6efd",
+                    backgroundColor: "rgba(13, 110, 253, 0.12)",
+                    fill: true,
+                    tension: 0.25,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: (value) => `${temperatureFormatter.format(value)} C`
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Temperatura: ${temperatureFormatter.format(context.parsed.y)} C`
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}

@@ -106,6 +106,9 @@ def history_view(request):
         avg_temperature=Avg("temperature"),
         max_temperature=Max("temperature"),
     )
+    chart_telemetries = list(
+        telemetry_qs.exclude(temperature__isnull=True).order_by("recorded_at")[:200]
+    )
     event_total = event_qs.count()
 
     telemetry_rows = telemetry_qs.annotate(
@@ -151,5 +154,10 @@ def history_view(request):
         "avg_temperature": telemetry_stats["avg_temperature"],
         "max_temperature": telemetry_stats["max_temperature"],
         "event_total": event_total,
+        "chart_labels": [
+            timezone.localtime(item.recorded_at).strftime("%d/%m %H:%M:%S")
+            for item in chart_telemetries
+        ],
+        "chart_values": [float(item.temperature) for item in chart_telemetries],
     }
     return render(request, "dashboard/history.html", context)
