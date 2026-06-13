@@ -6,7 +6,10 @@
         <h1 class="h3 mb-1">{{ device.name }}</h1>
         <div class="text-secondary"><code>{{ device.hardware_id }}</code></div>
     </div>
-    <a class="btn btn-outline-secondary" href="/devices/">Voltar</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'history' %}?device={{ device.id }}">Ver histórico</a>
+        <a class="btn btn-outline-secondary" href="/devices/">Voltar</a>
+    </div>
 </div>
 
 <div class="row g-4">
